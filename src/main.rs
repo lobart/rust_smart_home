@@ -4,6 +4,7 @@
 #[warn(unused_imports)]
 use serde::Deserialize;
 use std::collections::HashMap;
+use std::fmt::format;
 const TEMPERATURE: i32 = 25;
 const CONSUMPTION: i32 = 100;
 
@@ -64,15 +65,12 @@ impl Device for SmartThermometer {
         String::from(&self.name)
     }
     fn get_report(&self) -> String {
-        String::from("Устройство умный термометр. \nИмя: ")
-            + &self.get_name()
-            + &String::from("\n")
-            + &String::from("Параметры: \n")
-            + &String::from("Температура: ")
-            + &String::from(&self.temperature.to_string())
-            + &String::from("\n")
-            + &String::from("Описание: ")
-            + &String::from(&self.description)
+        format!("Устройство умный термометр.\n
+                Имя: {0}
+                Параметры:
+                Температура: {1}
+                Описание: {2}",
+                self.get_name(), self.temperature.to_string(), self.description)
     }
 }
 
@@ -112,18 +110,13 @@ impl Device for SmartSocket {
         String::from(&self.name)
     }
     fn get_report(&self) -> String {
-        String::from("Устройство умная розетка. \nИмя: ")
-            + &self.get_name()
-            + &String::from("\n")
-            + &String::from("Параметры: \n")
-            + &String::from("Состояние: ")
-            + &String::from(&self.state.to_string())
-            + &String::from("\n")
-            + &String::from("Потребление: ")
-            + &String::from(&self.power_consumption.to_string())
-            + &String::from("\n")
-            + &String::from("Описание: ")
-            + &String::from(&self.description)
+        format!("Устройство умная розетка.\n
+                Имя: {0}
+                Параметры:
+                Состояние: {1}
+                Потребление: {2}
+                Описание: {3}", 
+                self.get_name(), self.state.to_string(), self.power_consumption.to_string(), self.description)
     }
 }
 
@@ -191,17 +184,9 @@ impl SmartHouse<Room> {
 
     fn create_report(&self) -> String {
         let mut report: String = String::new();
-        report.push_str(
-            &(String::from("\nОтчет об устройствах умного дома ")
-                + &self.name
-                + &String::from(".\n\n\n")),
-        );
+        report.push_str(&format!("\nОтчет об устройствах умного дома {0}.\n\n\n", self.name));
         for room in self.rooms.values() {
-            report.push_str(
-                &(String::from("В комнате ")
-                    + &room.name
-                    + &String::from(" установлены следующие приборы: \n")),
-            );
+            report.push_str(&format!("В комнате {0} установлены следующие приборы: \n", room.name));
             for device in room.devices.values() {
                 report.push_str(&((*device.get_report()).to_string() + &String::from("\n")));
                 report.push_str(&(String::from("\n")));
