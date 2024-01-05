@@ -1,6 +1,7 @@
 pub mod lib {
 	#[warn(unused_imports)]
 	use serde::Deserialize;
+	use serde::ser::{Serialize, Serializer, SerializeStruct};
 	use std::collections::HashMap;
 	
 	const TEMPERATURE: i32 = 25;
@@ -118,6 +119,79 @@ pub mod lib {
 	    }
 	}
 
+	impl Serialize for SmartHouse<Room> {
+	    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	    where
+		S: Serializer,
+	    {
+		// 3 is the number of fields in the struct.
+		let mut state = serializer.serialize_struct("SmartHouse", 2)?;
+		state.serialize_field("name", &self.name)?;
+		state.serialize_field("rooms", &self.rooms)?;
+		state.end()
+	    }
+	}
+	impl Serialize for Room {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: Serializer,
+            {
+                // 3 is the number of fields in the struct.
+                let mut state = serializer.serialize_struct("Room", 2)?;
+                state.serialize_field("name", &self.name)?;
+                state.serialize_field("devices", &self.devices)?;
+                state.end()
+            }
+        }
+
+	impl Serialize for SmartSocket {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: Serializer,
+            {
+                let mut state = serializer.serialize_struct("SmartSocket", 4)?;
+                state.serialize_field("name", &self.name)?;
+                state.serialize_field("state", &self.state)?;
+		state.serialize_field("power_consumption", &self.power_consumption)?;
+                state.serialize_field("description", &self.description)?;
+                state.end()
+            }
+        }
+
+        impl Serialize for SmartThermometer {
+            fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+            where
+                S: Serializer,
+            {   
+                let mut state = serializer.serialize_struct("SmartThermometer", 3)?;
+                state.serialize_field("name", &self.name)?;
+                state.serialize_field("temperature", &self.temperature)?;
+                state.serialize_field("description", &self.description)?;
+                state.end()
+            }
+        }
+
+	impl Serialize for dyn Device {
+	    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+		where S: Serializer {
+		    let s = serializer.serialize_struct("???", 3)?;
+	/*	    match s.typ {
+		    "SS" => {
+		s.serialize_field("name", &self.name)?;
+                s.serialize_field("state", &self.state)?;
+                s.serialize_field("power_consumption", &self.power_consumption)?;
+                s.serialize_field("description", &self.description)?;
+			},
+		    "ST" => {
+		s.serialize_field("name", &self.name)?;
+                s.serialize_field("temperature", &self.temperature)?;
+                s.serialize_field("description", &self.description)?;	
+			}
+		    } */
+		    s.end()
+		}
+	}
+
 	impl SmartHouse<Room> {
 	    pub fn new(config: &SmartHouseConf<RoomConf<DeviceConf>>) -> Self {
 		let mut sh = SmartHouse {
@@ -194,5 +268,35 @@ pub mod lib {
 		report
 	    }
 	}
-}
 
+
+	#[cfg(test)]
+	mod tests {
+	    use super::*;
+
+	    #[test]
+	    fn empty_cfg() {
+		let cfg = r#"
+		{
+		    "name": "New House 1",
+		    "rooms": {
+			"room" : {
+			"name" : "SuperRoom",
+			"devices" : {
+				}
+			}	
+		}
+		}"#;
+
+		let mut house: SmartHouse<Room> = SmartHouse { name: "New House 1".to_string(), 
+							   rooms: HashMap::new() };
+		house.rooms.insert("room".to_string(), Room{ name: "SuperRoom".to_string(), devices: HashMap::new()});
+		let house_ser = serde_json::to_string(&house).unwrap();
+		//println!("Houses {:#?}", house_ser);
+		let test_house: SmartHouse<Room> = SmartHouse::new(&(serde_json::from_str(cfg).unwrap()));
+		let test_house_ser = serde_json::to_string(&test_house).unwrap();
+		//println!("Test Houses {:#?}", test_house_ser);
+		assert_eq!(house_ser, test_house_ser);
+	    }
+	}
+}
