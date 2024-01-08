@@ -1,5 +1,6 @@
-
-use homework_3::lib::{SmartHouse, Room, SmartHouseConf, RoomConf, DeviceConf};
+use homework_3::config::{DeviceConf, RoomConf, SmartHouseConf};
+use homework_3::rooms::Room;
+use homework_3::smarthouse::SmartHouse;
 
 fn main() -> serde_json::Result<()> {
     let config = r#"
