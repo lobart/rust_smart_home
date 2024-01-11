@@ -63,6 +63,25 @@ impl SmartHouse<Room> {
         sh
     }
 
+    pub fn get_list_rooms(&self) -> Vec<String> {
+        let mut res: Vec<String> = Vec::new();
+	for v in self.rooms.values() {
+            res.push(String::from(&v.name));
+        }
+        res
+    }
+
+    pub fn get_list_devices(&self) -> Vec<String> {
+        let mut res: Vec<String> = Vec::new();
+        for v in self.rooms.values() {
+            let begin: String = String::from(&v.name);
+            for d in v.devices.values() {
+                res.push(format!("{0}_{1}", begin, d.get_name()));
+            }
+        }
+        res
+    }
+
     pub fn create_report(&self) -> String {
         let mut report: String = String::new();
         report.push_str(&format!(
@@ -83,3 +102,54 @@ impl SmartHouse<Room> {
         report
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_house() {
+	let cfg = r#"
+	{
+	    "name": "NewHouse1",
+	    "rooms": {
+		"room1" : {
+		"name" : "SuperRoom1",
+		"devices" : {
+			"dev1" : {
+				"typ": "SS",
+				"name": "SmartSocket",
+				"description": "This is SmartSocket"
+			},
+			"dev2" : {
+				"typ": "ST",
+				"name": "SmartThermometer",
+				"description": "This is SmartThermometer"
+			}
+		}
+		},
+                "room2" : {
+                "name" : "SuperRoom2",
+                "devices" : {
+                        "dev1" : {
+                                "typ": "SS",
+                                "name": "SmartSocket",
+                                "description": "This is SmartSocket"
+                        },
+                        "dev2" : {
+                                "typ": "ST",
+                                "name": "SmartThermometer",
+                                "description": "This is SmartThermometer"
+                        }
+                }
+                }       
+	    }
+	}"#;
+        let test_house_conf: SmartHouseConf<RoomConf<DeviceConf>> = serde_json::from_str(cfg).unwrap();
+        let test_house: SmartHouse<Room> = SmartHouse::new(&test_house_conf);
+        assert_eq!(test_house.name, "NewHouse1");
+	assert_eq!(test_house.get_list_rooms(), vec!["SuperRoom2","SuperRoom1"]);
+        assert_eq!(test_house.get_list_devices(), vec!["SuperRoom2_SmartSocket","SuperRoom2_SmartThermometer","SuperRoom1_SmartThermometer","SuperRoom1_SmartSocket"]);
+    }
+}
+
