@@ -39,8 +39,8 @@ impl Device for SmartSocket {
 		Потребление: {2}
 		Описание: {3}",
             self.get_name(),
-            self.state.to_string(),
-            self.power_consumption.to_string(),
+            self.state,
+            self.power_consumption,
             self.description
         )
     }

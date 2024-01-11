@@ -36,7 +36,7 @@ impl Device for SmartThermometer {
 		Температура: {1}
 		Описание: {2}",
             self.get_name(),
-            self.temperature.to_string(),
+            self.temperature,
             self.description
         )
     }
