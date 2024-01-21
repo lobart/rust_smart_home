@@ -1,0 +1,85 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Build
+      run: cargo build --verbose
+    - name: Run tests
+      run: cargo test --verbose
+  coverage:
+    name: Measure coverage
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+
+    - name: Install rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: llvm-tools
+
+    - name: Install cargo-llvm-cov
+      run: cargo install cargo-llvm-cov
+
+    - name: Measure coverage
+      run: ./admin/coverage --lcov --output-path final.info
+    
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+    - name: Install rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: clippy
+      # because examples enable rustls' features, `--workspace --no-default-features` is not
+      # the same as `--package rustls --no-default-features` so run it separately
+    - run: cargo clippy --locked --package rustls --no-default-features --all-targets -- --deny warnings
+    - run: cargo clippy --locked --workspace --all-features --all-targets -- --deny warnings
+      # not part of the workspace
+    - run: cargo clippy --locked --manifest-path=fuzz/Cargo.toml --all-features --all-targets -- --deny warnings
+
+
+  clippy-nightly:
+    name: Clippy (Nightly)
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout sources
+      uses: actions/checkout@v4
+      with:
+        persist-credentials: false
+    - name: Install rust toolchain
+      uses: dtolnay/rust-toolchain@nightly
+      with:
+        components: clippy
+    - run: cargo clippy --locked --package rustls --no-default-features --all-targets
+    - run: cargo clippy --locked --workspace --all-features --all-targets
+    - run: cargo clippy --locked --manifest-path=fuzz/Cargo.toml --all-features --all-targets
+
+
+
