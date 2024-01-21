@@ -25,20 +25,26 @@ impl Device for SmartThermometer {
     fn print_state(&self) {
         println!("Temperature is {0} Celsius", self.temperature);
     }
-    fn get_name(&self) -> String {
-        String::from(&self.name)
+    fn get_name(&self) -> Result<String, &'static str> {
+        if self.name.is_empty() {
+            Err("Name is empty!!!")
+        } else {
+            Ok(String::from(&self.name))
+        }
     }
-    fn get_report(&self) -> String {
-        format!(
+    fn get_report(&self) -> Result<String, &'static str> {
+        let name = match self.get_name() {
+            Ok(name) => name,
+            Err(err) => panic!("{0}", err),
+        };
+        Ok(format!(
             "Устройство умный термометр.\n
 		Имя: {0}
 		Параметры:
 		Температура: {1}
 		Описание: {2}",
-            self.get_name(),
-            self.temperature,
-            self.description
-        )
+            name, self.temperature, self.description
+        ))
     }
 }
 

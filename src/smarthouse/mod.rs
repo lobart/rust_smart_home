@@ -5,6 +5,7 @@ use crate::devices::smartthermometer::SmartThermometer;
 use crate::rooms::Room;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 use std::collections::HashMap;
+
 #[derive(Debug)]
 pub struct SmartHouse<Room> {
     pub name: String,
@@ -63,53 +64,80 @@ impl SmartHouse<Room> {
         sh
     }
 
-    pub fn get_list_rooms(&self) -> Vec<String> {
+    pub fn get_list_rooms(&self) -> Result<Vec<String>, &'static str> {
         let mut res: Vec<String> = Vec::new();
-	for v in self.rooms.values() {
-            res.push(String::from(&v.name));
+        if self.rooms.is_empty() {
+            Err("List of rooms is empty!")
+        } else {
+            for v in self.rooms.values() {
+                res.push(String::from(&v.name));
+            }
+            Ok(res)
         }
-        res
     }
 
-    pub fn get_list_devices(&self) -> Vec<String> {
+    pub fn get_list_devices(&self) -> Result<Vec<String>, &'static str> {
         let mut res: Vec<String> = Vec::new();
+
         for v in self.rooms.values() {
             let begin: String = String::from(&v.name);
             for d in v.devices.values() {
-                res.push(format!("{0}_{1}", begin, d.get_name()));
+                res.push(format!("{0}_{1}", begin, d.get_name().unwrap()));
             }
         }
-        res
+        if res.is_empty() {
+            Err("List of devices is empty!")
+        } else {
+            Ok(res)
+        }
     }
 
-    pub fn create_report(&self) -> String {
+    pub fn create_report(&self) -> Result<String, &'static str> {
         let mut report: String = String::new();
         report.push_str(&format!(
             "\nОтчет об устройствах умного дома {0}.\n\n\n",
             self.name
         ));
-        for room in self.rooms.values() {
-            report.push_str(&format!(
-                "В комнате {0} установлены следующие приборы: \n",
-                room.name
-            ));
-            for device in room.devices.values() {
-                report.push_str(&((*device.get_report()).to_string() + &String::from("\n")));
-                report.push_str(&(String::from("\n")));
+        match self.get_list_rooms() {
+            Err(_) => Err::<String, &str>("В доме нет комнат."),
+            Ok(_) => {
+                for room in self.rooms.values() {
+                    report.push_str(&format!(
+                        "В комнате {0} установлены следующие приборы: \n",
+                        room.name
+                    ));
+                    for device in room.devices.values() {
+                        report.push_str(
+                            &((*device.get_report().unwrap()).to_string() + &String::from("\n")),
+                        );
+                        report.push_str(&(String::from("\n")));
+                    }
+                    report.push_str(&(String::from("\n\n")));
+                }
+                Ok(report)
             }
-            report.push_str(&(String::from("\n\n")));
         }
-        report
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::{collections::HashSet, hash::Hash};
+
+    fn set_eq<T>(a: &[T], b: &[T]) -> bool
+    where
+        T: Eq + Hash,
+    {
+        let a: HashSet<_> = a.iter().collect();
+        let b: HashSet<_> = b.iter().collect();
+
+        a == b
+    }
 
     #[test]
     fn test_house() {
-	let cfg = r#"
+        let cfg = r#"
 	{
 	    "name": "NewHouse1",
 	    "rooms": {
@@ -145,11 +173,22 @@ mod tests {
                 }       
 	    }
 	}"#;
-        let test_house_conf: SmartHouseConf<RoomConf<DeviceConf>> = serde_json::from_str(cfg).unwrap();
+        let test_house_conf: SmartHouseConf<RoomConf<DeviceConf>> =
+            serde_json::from_str(cfg).unwrap();
         let test_house: SmartHouse<Room> = SmartHouse::new(&test_house_conf);
         assert_eq!(test_house.name, "NewHouse1");
-	assert_eq!(test_house.get_list_rooms(), vec!["SuperRoom2","SuperRoom1"]);
-        assert_eq!(test_house.get_list_devices(), vec!["SuperRoom2_SmartSocket","SuperRoom2_SmartThermometer","SuperRoom1_SmartThermometer","SuperRoom1_SmartSocket"]);
+        assert!( set_eq(
+            &test_house.get_list_rooms().unwrap(),
+            &["SuperRoom1".to_string(), "SuperRoom2".to_string()]
+        ));
+        assert!(set_eq(
+            &test_house.get_list_devices().unwrap(),
+            &[
+                "SuperRoom2_SmartSocket".to_string(),
+                "SuperRoom2_SmartThermometer".to_string(),
+                "SuperRoom1_SmartThermometer".to_string(),
+                "SuperRoom1_SmartSocket".to_string()
+            ]
+        ));
     }
 }
-

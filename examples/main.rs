@@ -41,7 +41,9 @@ fn main() -> serde_json::Result<()> {
         }"#;
     let config_map: SmartHouseConf<RoomConf<DeviceConf>> = serde_json::from_str(config)?;
     let sh: SmartHouse<Room> = SmartHouse::new(&config_map);
-    let rep: String = sh.create_report();
-    println!("{0}", rep);
+    match sh.create_report() {
+        Ok(report) => println!("{0}", report),
+        Err(err) => panic!("{0}", err),
+    }
     Ok(())
 }

@@ -1,10 +1,10 @@
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
 pub trait Device {
-    fn get_name(&self) -> String;
+    fn get_name(&self) -> Result<String, &'static str>;
     fn print(&self);
     fn print_state(&self);
-    fn get_report(&self) -> String;
+    fn get_report(&self) -> Result<String, &'static str>;
 }
 
 impl Serialize for dyn Device {

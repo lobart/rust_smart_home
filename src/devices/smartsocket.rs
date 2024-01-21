@@ -27,22 +27,27 @@ impl Device for SmartSocket {
     fn print_state(&self) {
         println!("Power consumption is: {0}", self.power_consumption)
     }
-    fn get_name(&self) -> String {
-        String::from(&self.name)
+    fn get_name(&self) -> Result<String, &'static str> {
+        if self.name.is_empty() {
+            Err("Name is empty!!!")
+        } else {
+            Ok(String::from(&self.name))
+        }
     }
-    fn get_report(&self) -> String {
-        format!(
+    fn get_report(&self) -> Result<String, &'static str> {
+        let name = match self.get_name() {
+            Ok(name) => name,
+            Err(err) => panic!("{0}", err),
+        };
+        Ok(format!(
             "Устройство умная розетка.\n
 		Имя: {0}
 		Параметры:
 		Состояние: {1}
 		Потребление: {2}
 		Описание: {3}",
-            self.get_name(),
-            self.state,
-            self.power_consumption,
-            self.description
-        )
+            name, self.state, self.power_consumption, self.description
+        ))
     }
 }
 
