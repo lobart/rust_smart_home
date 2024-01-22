@@ -2,9 +2,9 @@
 
 SmartHouse is project for common IOT devices. 
 
-[![Build Status](https://github.com/lobart/rust_smart_home/workflows/Mean%22Bean%22CI/badge.svg)](https://github.com/lobart/rust_smart_home/actions?query=workflow%3A%22Mean+Bean+CI%22)
-[![Build Status](https://github.com/lobart/rust_smart_home/workflows/Docker%22Image%22CI/badge.svg)](https://github.com/lobart/rust_smart_home/actions?query=workflow%3A%22Docker+Image_CI%22)
-[![Build Status](https://github.com/lobart/rust_smart_home/workflows/Rust/badge.svg)](https://github.com/lobart/rust_smart_home/actions?query=workflow%3A%Rust)
+[![Build Status](https://github.com/lobart/rust_smart_home/workflows/Mean%20Bean%20CI/badge.svg)](https://github.com/lobart/rust_smart_home/actions/workflows/mean_bean_ci.yml)
+[![Build Status](https://github.com/lobart/rust_smart_home/workflows/Docker%20Image%20CI/badge.svg)](https://github.com/lobart/rust_smart_home/actions/workflows/docker-image.yml)
+[![Build Status](https://github.com/lobart/rust_smart_home/workflows/Rust/badge.svg)](https://github.com/lobart/rust_smart_home/actions/workflows/build.yml)
 [![codecov](https://codecov.io/gh/lobart/rust_smart_home/graph/badge.svg?token=67K5ZEGT4Y)](https://codecov.io/gh/lobart/rust_smart_home)
 
 ## Example of config for Smart House
