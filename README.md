@@ -2,6 +2,8 @@
 
 SmartHouse is project for common IOT devices. 
 
+[![codecov](https://codecov.io/gh/lobart/rust_smart_home/graph/badge.svg?token=67K5ZEGT4Y)](https://codecov.io/gh/lobart/rust_smart_home)
+
 ## Example of config for Smart House
 
 ```json
