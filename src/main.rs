@@ -1,6 +1,6 @@
-use homework_3::config::{DeviceConf, RoomConf, SmartHouseConf};
-use homework_3::rooms::Room;
-use homework_3::smarthouse::SmartHouse;
+use rust_smart_house::config::{DeviceConf, RoomConf, SmartHouseConf};
+use rust_smart_house::rooms::Room;
+use rust_smart_house::smarthouse::SmartHouse;
 
 fn main() -> serde_json::Result<()> {
     let config = r#"

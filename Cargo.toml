@@ -1,5 +1,5 @@
 [package]
-name = "homework_3"
+name = "rust_smart_house"
 version = "0.1.0"
 edition = "2021"
 include = ["/src"]
