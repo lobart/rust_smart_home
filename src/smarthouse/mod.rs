@@ -1,7 +1,4 @@
 use crate::config::{DeviceConf, RoomConf, SmartHouseConf};
-use crate::devices::device::Device;
-use crate::devices::smartsocket::SmartSocket;
-use crate::devices::smartthermometer::SmartThermometer;
 use crate::rooms::Room;
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 use std::collections::HashMap;
@@ -32,36 +29,38 @@ impl SmartHouse<Room> {
             rooms: HashMap::new(),
         };
         for (k, v) in config.rooms.iter() {
-            sh.rooms.insert(
-                String::from(k),
-                Room {
-                    name: String::from(&v.name),
-                    devices: HashMap::new(),
-                },
-            );
+            sh.rooms
+                .insert(String::from(k), Room::new(String::from(&v.name)));
+            let mut room: Room = Room::new(String::from(&v.name));
             for (n, d) in v.devices.iter() {
-                let temp: Box<dyn Device> = if d.typ == "SS" {
-                    Box::new(SmartSocket {
-                        name: String::from(&d.name),
-                        description: String::from(&d.description),
-                        ..Default::default()
-                    })
-                } else {
-                    Box::new(SmartThermometer {
-                        name: String::from(&d.name),
-                        description: String::from(&d.description),
-                        ..Default::default()
-                    })
-                };
-                sh.rooms
-                    .get_mut(&String::from(k))
-                    .unwrap()
-                    .devices
-                    .insert((&n).to_string(), temp);
+                room.add_device(
+                    n,
+                    String::from(&d.name),
+                    String::from(&d.description),
+                    String::from(&d.typ),
+                );
+            }
+            sh.rooms.insert(k.to_string(), room);
+        }
+        sh
+    }
+
+    pub fn get_room_id(&self, name: &String) -> String {
+        for (k, v) in self.rooms.iter() {
+            if v.name == *name {
+                return String::from(k);
             }
         }
+        String::from("")
+    }
 
-        sh
+    pub fn remove_room_by_id(&mut self, id: &String) {
+        self.rooms.remove_entry(id);
+    }
+
+    pub fn remove_room_by_name(&mut self, name: &String) {
+        let id = self.get_room_id(name);
+        self.rooms.remove_entry(&id);
     }
 
     pub fn get_list_rooms(&self) -> Result<Vec<String>, &'static str> {
@@ -177,7 +176,7 @@ mod tests {
             serde_json::from_str(cfg).unwrap();
         let test_house: SmartHouse<Room> = SmartHouse::new(&test_house_conf);
         assert_eq!(test_house.name, "NewHouse1");
-        assert!( set_eq(
+        assert!(set_eq(
             &test_house.get_list_rooms().unwrap(),
             &["SuperRoom1".to_string(), "SuperRoom2".to_string()]
         ));
